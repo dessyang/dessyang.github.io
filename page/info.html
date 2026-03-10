@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>信息展示卡片</title>
+    <!-- 引入 jQuery -->
+    <script src="script/jquery-4.0.0.min.js"></script>
+    <style>
+        /* 页面基础样式 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: "Microsoft Yahei", sans-serif;
+        }
+
+        body {
+            background-color: #f5f7fa;
+            padding: 20px;
+        }
+
+        /* 卡片容器 - 网格布局，适配多卡片 */
+        .card-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 单个卡片基础样式 */
+        .user-card {
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            transition: all 0.3s ease;
+            /* 过渡动效 */
+            cursor: pointer;
+            border: 2px solid transparent;
+            /* 预留边框位 */
+            background-color: #fff;
+            /* 默认背景色 */
+        }
+
+        /* 卡片悬停效果 */
+        .user-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.12);
+        }
+
+        /* 头像区域 */
+        .avatar-wrapper {
+            text-align: center;
+            margin-bottom: 15px;
+        }
+
+        .avatar {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            /* 圆形头像 */
+            object-fit: cover;
+            /* 保持图片比例 */
+            border: 3px solid #e8f4f8;
+        }
+
+        /* 名称与平台区域 */
+        .user-info {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .user-name {
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 6px;
+        }
+
+        .user-platform {
+            font-size: 14px;
+            color: #888;
+            background-color: #f5f8ff;
+            display: inline-block;
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        /* 数据统计区域 */
+        .stats-wrapper {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            border-top: 1px solid #eee;
+            padding-top: 15px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: #2f54eb;
+            /* 保留原有主色调 */
+            margin-bottom: 5px;
+        }
+
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+        }
+
+        /* 平台专属背景色（浅色系，保证文字可读性） */
+        .platform-douyin {
+            background-color: #fff8f8;
+            /* 抖音-浅红底 */
+        }
+
+        .platform-xiaohongshu {
+            background-color: #fff5f7;
+            /* 小红书-浅粉底 */
+        }
+
+        .platform-kuaishou {
+            background-color: #f0fcff;
+            /* 快手-浅蓝底 */
+        }
+
+        .platform-weixin {
+            background-color: #f6ffed;
+            /* 视频号-浅绿底 */
+        }
+
+        .platform-bilibili {
+            background-color: #f9f0ff;
+            /* 哔哩哔哩-浅紫底 */
+        }
+
+        .platform-xianyu {
+            background-color: #f7f9fa;
+            /* 闲鱼-浅黄/浅灰底（贴合闲鱼品牌色） */
+        }
+    </style>
+</head>
+
+<body>
+    <!-- 卡片容器 -->
+    <div class="card-container" id="cardContainer"></div>
+
+    <script>
+        // 平台名 -> CSS类名 映射表
+        const platformClassMap = {
+            "抖音": "platform-douyin",
+            "小红书": "platform-xiaohongshu",
+            "快手": "platform-kuaishou",
+            "视频号": "platform-weixin",
+            "哔哩哔哩": "platform-bilibili",
+            "闲鱼": "platform-xianyu"
+        };
+        // 模拟数据源
+        $.get("http://127.0.0.1:3000/userinfo", function (data) {
+            let userDataList = [];
+            console.log("从服务器获取的数据：", data);
+            userDataList = data; // 将获取到的数据赋值给userDataList   
+
+            // jQuery 渲染卡片
+            $(document).ready(function () {
+                const $cardContainer = $("#cardContainer");
+                $cardContainer.empty(); // 清空容器
+
+                // 循环拼接卡片 HTML
+                let cardHtml = "";
+                userDataList.forEach(user => {
+                    // 获取当前平台对应的CSS类名
+                    const platformClass = platformClassMap[user.platform] || "";
+                    // 拼接卡片（仅添加控制背景色的平台类名）
+                    cardHtml += `
+                    <div class="user-card ${platformClass}">
+                        <div class="avatar-wrapper">
+                            <img src="${user.avatar}" alt="${user.name}" class="avatar">
+                        </div>
+                        <div class="user-info">
+                            <div class="user-name">${user.name}</div>
+                            <div class="user-platform">${user.platform}</div>
+                        </div>
+                        <div class="stats-wrapper">
+                            <div class="stat-item">
+                                <div class="stat-value">${user.productCount}</div>
+                                <div class="stat-label">产品数量</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value">${user.fansCount}</div>
+                                <div class="stat-label">粉丝数</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                });
+                // 插入所有卡片
+                $cardContainer.html(cardHtml);
+            });
+        });
+    </script>
+</body>
+
+</html>
