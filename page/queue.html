@@ -1,1034 +1,201 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>代肝任务排队看板（自定义对话框版）</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: "微软雅黑", Arial, sans-serif;
-        }
-        body {
-            background-color: #f8f9fa;
-            padding: 20px;
-        }
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        h1 {
-            text-align: center;
-            color: #333;
-            margin-bottom: 30px;
-        }
-        /* 操作区样式 */
-        .operate-area {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-            margin-bottom: 20px;
-        }
-        .form-row {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-            flex-wrap: wrap;
-        }
-        .form-item {
-            flex: 1;
-            min-width: 150px;
-        }
-        .import-export-area {
-            margin: 15px 0;
-            padding: 15px;
-            border: 1px dashed #ddd;
-            border-radius: 4px;
-        }
-        .filter-area {
-            margin: 15px 0;
-            display: flex;
-            gap: 15px;
-            flex-wrap: wrap;
-            align-items: center;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: 600;
-            color: #555;
-        }
-        input, select, textarea {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            font-size: 14px;
-        }
-        textarea {
-            min-height: 150px;
-            resize: vertical;
-            font-family: "Consolas", monospace;
-            font-size: 12px;
-        }
-        .btn {
-            padding: 8px 16px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-            margin-right: 8px;
-            margin-top: 10px;
-        }
-        .btn-primary {
-            background-color: #28a745;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-primary:hover {
-            background-color: #218838;
-        }
-        .btn-danger {
-            background-color: #dc3545;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-danger:hover {
-            background-color: #c82333;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-        .btn-info {
-            background-color: #17a2b8;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-info:hover {
-            background-color: #138496;
-        }
-        .btn-warning {
-            background-color: #ffc107;
-            color: #333;
-            transition: background-color 0.2s;
-        }
-        .btn-warning:hover {
-            background-color: #e0a800;
-        }
-        .btn-edit {
-            background-color: #007bff;
-            color: white;
-            transition: background-color 0.2s;
-        }
-        .btn-edit:hover {
-            background-color: #0069d9;
-        }
-        /* 排队看板样式 */
-        .queue-board {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .queue-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-        .queue-stats {
-            color: #666;
-            font-size: 16px;
-        }
-        .queue-stats span {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        .total-time-info {
-            color: #007bff;
-            font-size: 16px;
-            font-weight: 600;
-        }
-        .task-queue {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        /* 任务卡片样式 */
-        .task-card {
-            padding: 15px;
-            border-radius: 6px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-left: 5px solid #ddd;
-            background-color: #f9f9f9;
-        }
-        .task-card.done {
-            border-left-color: #28a745;
-            background-color: #e8f5e9;
-            opacity: 0.8;
-            text-decoration: line-through;
-        }
-        .task-card.active {
-            border-left-color: #007bff;
-            background-color: #e3f2fd;
-            transform: scale(1.02);
-        }
-        .task-card.waiting {
-            border-left-color: #ffc107;
-            background-color: #fff8e1;
-        }
-        .task-info {
-            flex: 1;
-        }
-        .task-user {
-            font-size: 14px;
-            color: #17a2b8;
-            margin-bottom: 5px;
-        }
-        .task-name {
-            font-size: 18px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-        .task-time {
-            color: #666;
-            font-size: 14px;
-            line-height: 1.5;
-        }
-        .task-deadline {
-            color: #dc3545;
-            font-weight: 600;
-        }
-        .task-actions {
-            display: flex;
-            gap: 8px;
-        }
-        .empty-tip {
-            text-align: center;
-            color: #999;
-            padding: 40px 0;
-            font-size: 16px;
-        }
-        .import-tip {
-            font-size: 12px;
-            color: #999;
-            margin-top: 5px;
-            line-height: 1.5;
-        }
 
-        /* 编辑弹窗样式 */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            display: none;
-        }
-        .modal {
-            background: white;
-            padding: 25px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        .modal h3 {
-            margin-bottom: 20px;
-            color: #333;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .modal .form-row {
-            margin-bottom: 10px;
-        }
-        .modal-btns {
-            display: flex;
-            justify-content: flex-end;
-            gap: 10px;
-            margin-top: 20px;
-        }
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>排队任务工具</title>
+        <script src="script/tailwindcss-3.4.17.min.js"></script>
+        <script src="script/jquery-4.0.0.min.js"></script>
+        <link rel="stylesheet" href="script/daisyui-full.min.css">
+    </head>
 
-        /* 自定义对话框样式（核心新增） */
-        .dialog-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.5);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 2000; /* 层级高于编辑弹窗 */
-            display: none;
-        }
-        .dialog-box {
-            background: white;
-            padding: 30px;
-            border-radius: 8px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-            text-align: center;
-        }
-        .dialog-title {
-            font-size: 18px;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .dialog-content {
-            font-size: 16px;
-            color: #555;
-            margin-bottom: 30px;
-            line-height: 1.5;
-        }
-        .dialog-btns {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-        }
-        .dialog-btn {
-            padding: 8px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        .dialog-confirm {
-            background-color: #28a745;
-            color: white;
-        }
-        .dialog-confirm:hover {
-            background-color: #218838;
-        }
-        .dialog-cancel {
-            background-color: #6c757d;
-            color: white;
-        }
-        .dialog-cancel:hover {
-            background-color: #5a6268;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <h1>代肝任务排队看板</h1>
-        
-        <!-- 操作区域 -->
-        <div class="operate-area">
-            <!-- 单个添加任务表单 -->
-            <div class="form-row">
-                <div class="form-item">
-                    <label for="userId">用户UID</label>
-                    <input type="text" id="userId" placeholder="例如：123456789">
-                </div>
-                <div class="form-item">
-                    <label for="userName">用户名</label>
-                    <input type="text" id="userName" placeholder="例如：原神玩家123">
-                </div>
-                <div class="form-item">
-                    <label for="taskName">任务名称</label>
-                    <input type="text" id="taskName" placeholder="例如：原神日常、星铁模拟宇宙">
+    <body class="bg-gray-100 min-h-screen p-4 md:p-6">
+        <div id="toast" class="toast"></div>
+
+        <div class="max-w-5xl mx-auto">
+            <h1 class="text-2xl md:text-3xl font-bold text-center mb-6">排队任务工具</h1>
+
+            <!-- 操作栏 -->
+            <div class="bg-white rounded-xl shadow p-4 mb-6 flex flex-wrap gap-3 items-center">
+                <button id="exportJson" class="px-4 py-2 bg-blue-600 text-white rounded">导出 JSON</button>
+                <label class="px-4 py-2 bg-gray-700 text-white rounded cursor-pointer">
+                    导入 JSON
+                    <input type="file" id="importJson" accept=".json" class="hidden">
+                </label>
+                <button id="addTask" class="px-4 py-2 bg-green-600 text-white rounded">新增任务</button>
+                <button id="clearAll" class="px-4 py-2 bg-red-600 text-white rounded">清空所有</button>
+                <div class="ml-auto text-sm space-x-4 font-medium">
+                    <span>剩余总耗时：<b id="totalTime" class="text-red-600">0 分钟</b></span>
+                    <span>预计完成：<b id="finishTime" class="text-blue-600">-</b></span>
                 </div>
             </div>
-            <div class="form-row">
-                <div class="form-item">
-                    <label for="taskHours">预估耗时（小时）</label>
-                    <input type="number" id="taskHours" step="0.5" min="0.5" placeholder="例如：2、1.5">
-                </div>
-                <div class="form-item">
-                    <label for="taskStatus">初始状态</label>
-                    <select id="taskStatus">
-                        <option value="waiting">等待中</option>
-                        <option value="active">进行中</option>
-                        <option value="done">已完成</option>
-                    </select>
-                </div>
-            </div>
-            <button class="btn btn-primary" onclick="addTask()">添加任务到队列</button>
-            <button class="btn btn-danger" onclick="clearAllTasks()">清空所有任务</button>
 
-            <!-- JSON导入导出区域 -->
-            <div class="import-export-area">
-                <label>JSON格式数据导入/导出</label>
-                <textarea id="jsonText" placeholder='示例：
-[
-    {
-        "userId": "123456789",
-        "userName": "原神玩家123",
-        "name": "原神日常",
-        "hours": 2,
-        "status": "waiting"
-    },
-    {
-        "userId": "987654321",
-        "userName": "星铁玩家456",
-        "name": "星铁模拟宇宙",
-        "hours": 3,
-        "status": "active"
-    }
-]'></textarea>
-                <div class="import-tip">
-                    1. 导入：粘贴JSON数组格式数据，点击「导入JSON数据」<br>
-                    2. 导出：点击「导出JSON数据」，会自动下载JSON文件<br>
-                    3. 字段说明：userId(UID)、userName(用户名)、name(任务名)、hours(耗时)、status(状态：waiting/active/done)
+            <!-- 队列列表 -->
+            <div class="bg-white rounded-xl shadow p-4">
+                <div class="grid grid-cols-12 gap-2 px-2 pb-2 border-b font-medium text-sm text-gray-600">
+                    <div class="col-span-1">序号</div>
+                    <div class="col-span-2">用户名</div>
+                    <div class="col-span-3">任务名称</div>
+                    <div class="col-span-2">耗时(分钟)</div>
+                    <div class="col-span-2">任务状态</div>
+                    <div class="col-span-2 text-right">操作</div>
                 </div>
-                <button class="btn btn-info" onclick="importJsonTasks()">导入JSON数据</button>
-                <button class="btn btn-warning" onclick="exportJsonTasks()">导出JSON数据</button>
-            </div>
-
-            <!-- 筛选展示区域 -->
-            <div class="filter-area">
-                <div class="form-item" style="min-width: 200px;">
-                    <label for="filterType">筛选类型</label>
-                    <select id="filterType">
-                        <option value="all">全部任务</option>
-                        <option value="uid">按UID筛选</option>
-                        <option value="username">按用户名筛选</option>
-                        <option value="taskname">按任务名称筛选</option>
-                        <option value="status">按状态筛选</option>
-                    </select>
-                </div>
-                <div class="form-item" style="min-width: 200px;">
-                    <label for="filterValue">筛选关键词</label>
-                    <input type="text" id="filterValue" placeholder="输入筛选内容">
-                </div>
-                <button class="btn btn-secondary" onclick="filterTasks()" style="align-self: flex-end; min-width: 100px;">筛选展示</button>
-                <button class="btn btn-secondary" onclick="showAllTasks()" style="align-self: flex-end; min-width: 100px;">显示全部</button>
+                <div id="taskQueue" class="space-y-2 mt-2"></div>
             </div>
         </div>
 
-        <!-- 排队看板 -->
-        <div class="queue-board">
-            <div class="queue-header">
-                <h2>任务排队队列</h2>
-                <div>
-                    <div class="queue-stats">
-                        待完成总耗时：<span id="totalHours">0</span> 小时 | 待完成任务数：<span id="totalTasks">0</span> 个
-                    </div>
-                    <div class="total-time-info">
-                        最晚完成时间：<span id="latestFinishTime">--:--</span>
-                    </div>
-                </div>
-            </div>
-            <div class="task-queue" id="taskQueue">
-                <!-- 任务卡片会动态生成 -->
-                <div class="empty-tip">暂无任务，添加你的第一个代肝任务吧！</div>
-            </div>
-        </div>
-    </div>
+        <script>
+            // 本地存储读取
+            let taskList = JSON.parse(localStorage.getItem('taskQueueData')) || [
+                { username: "张三", taskName: "日常代肝", minute: 30, status: "待处理" },
+                { username: "李四", taskName: "副本通关", minute: 20, status: "进行中" },
+                { username: "王五", taskName: "日常清体力", minute: 15, status: "已完成" },
+                { username: "赵六", taskName: "活动任务", minute: 25, status: "已取消" }
+            ];
 
-    <!-- 编辑任务弹窗 -->
-    <div class="modal-overlay" id="editModal">
-        <div class="modal">
-            <h3>编辑任务</h3>
-            <input type="hidden" id="editTaskId">
-            <div class="form-row">
-                <div class="form-item">
-                    <label for="editUserId">用户UID</label>
-                    <input type="text" id="editUserId" placeholder="例如：123456789">
-                </div>
-                <div class="form-item">
-                    <label for="editUserName">用户名</label>
-                    <input type="text" id="editUserName" placeholder="例如：原神玩家123">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-item">
-                    <label for="editTaskName">任务名称</label>
-                    <input type="text" id="editTaskName" placeholder="例如：原神日常、星铁模拟宇宙">
-                </div>
-                <div class="form-item">
-                    <label for="editTaskHours">预估耗时（小时）</label>
-                    <input type="number" id="editTaskHours" step="0.5" min="0.5" placeholder="例如：2、1.5">
-                </div>
-            </div>
-            <div class="form-row">
-                <div class="form-item">
-                    <label for="editTaskStatus">任务状态</label>
-                    <select id="editTaskStatus">
-                        <option value="waiting">等待中</option>
-                        <option value="active">进行中</option>
-                        <option value="done">已完成</option>
-                    </select>
-                </div>
-            </div>
-            <div class="modal-btns">
-                <button class="btn btn-secondary" onclick="closeEditModal()">取消</button>
-                <button class="btn btn-primary" onclick="saveEditTask()">保存修改</button>
-            </div>
-        </div>
-    </div>
+            const statusList = ["待处理", "进行中", "已完成", "已取消"];
 
-    <!-- 自定义对话框（核心新增） -->
-    <div class="dialog-overlay" id="customDialog">
-        <div class="dialog-box">
-            <div class="dialog-title" id="dialogTitle">提示</div>
-            <div class="dialog-content" id="dialogContent">这是自定义对话框内容</div>
-            <div class="dialog-btns">
-                <button class="dialog-btn dialog-cancel" id="dialogCancelBtn" style="display: none;" onclick="hideDialog()">取消</button>
-                <button class="dialog-btn dialog-confirm" id="dialogConfirmBtn" onclick="hideDialog()">确认</button>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        // 存储任务数据
-        let taskList = [];
-        // 原始任务数据（用于筛选后恢复）
-        let originalTaskList = [];
-        // 任务ID计数器
-        let taskId = 1;
-        // 当前开始时间（默认取当前小时，也可手动修改）
-        let currentStartTime = new Date();
-        // 取整点作为起始时间（比如当前14:30，就从14:00开始计算）
-        currentStartTime.setMinutes(0);
-        currentStartTime.setSeconds(0);
-
-        // 对话框回调函数（用于确认操作）
-        let dialogConfirmCallback = null;
-
-        // 页面加载时初始化
-        window.onload = function() {
-            // 加载本地保存的任务（刷新页面不丢失）
-            const savedTasks = localStorage.getItem('daiGanTasks');
-            if (savedTasks) {
-                taskList = JSON.parse(savedTasks);
-                originalTaskList = [...taskList];
-                taskId = taskList.length > 0 ? Math.max(...taskList.map(t => t.id)) + 1 : 1;
-                renderTaskQueue();
-                updateStats();
-            }
-        };
-
-        // ========== 自定义对话框核心函数（替换alert/confirm） ==========
-        // 显示仅提示的对话框（替换alert）
-        function showAlert(message, title = '提示') {
-            const dialog = document.getElementById('customDialog');
-            const dialogTitle = document.getElementById('dialogTitle');
-            const dialogContent = document.getElementById('dialogContent');
-            const dialogCancelBtn = document.getElementById('dialogCancelBtn');
-            const dialogConfirmBtn = document.getElementById('dialogConfirmBtn');
-
-            // 设置内容
-            dialogTitle.textContent = title;
-            dialogContent.textContent = message;
-            // 隐藏取消按钮（仅提示）
-            dialogCancelBtn.style.display = 'none';
-            // 清空回调
-            dialogConfirmCallback = null;
-            // 显示对话框
-            dialog.style.display = 'flex';
-        }
-
-        // 显示带确认/取消的对话框（替换confirm）
-        function showConfirm(message, confirmCallback, title = '确认') {
-            const dialog = document.getElementById('customDialog');
-            const dialogTitle = document.getElementById('dialogTitle');
-            const dialogContent = document.getElementById('dialogContent');
-            const dialogCancelBtn = document.getElementById('dialogCancelBtn');
-            const dialogConfirmBtn = document.getElementById('dialogConfirmBtn');
-
-            // 设置内容
-            dialogTitle.textContent = title;
-            dialogContent.textContent = message;
-            // 显示取消按钮
-            dialogCancelBtn.style.display = 'inline-block';
-            // 保存确认回调
-            dialogConfirmCallback = confirmCallback;
-            // 绑定确认按钮的回调触发
-            dialogConfirmBtn.onclick = function() {
-                hideDialog();
-                if (typeof dialogConfirmCallback === 'function') {
-                    dialogConfirmCallback();
+            // 淡色柔和主题
+            function statusClass(status) {
+                switch (status) {
+                    case "待处理": return "bg-blue-100 text-blue-800";
+                    case "进行中": return "bg-orange-100 text-orange-800 font-medium";
+                    case "已完成": return "bg-green-100 text-green-800";
+                    case "已取消": return "bg-gray-100 text-gray-500 opacity-70";
+                    default: return "";
                 }
-            };
-            // 显示对话框
-            dialog.style.display = 'flex';
-        }
-
-        // 隐藏对话框
-        function hideDialog() {
-            document.getElementById('customDialog').style.display = 'none';
-            // 重置确认按钮点击事件
-            document.getElementById('dialogConfirmBtn').onclick = hideDialog;
-        }
-
-        // ========== 原有功能（替换alert/confirm为自定义对话框） ==========
-        // 添加单个任务
-        function addTask() {
-            const userId = document.getElementById('userId').value.trim();
-            const userName = document.getElementById('userName').value.trim();
-            const name = document.getElementById('taskName').value.trim();
-            const hours = parseFloat(document.getElementById('taskHours').value);
-            const status = document.getElementById('taskStatus').value;
-
-            // 验证输入（替换alert为showAlert）
-            if (!userId) {
-                showAlert('请输入用户UID！');
-                return;
-            }
-            if (!userName) {
-                showAlert('请输入用户名！');
-                return;
-            }
-            if (!name) {
-                showAlert('请输入任务名称！');
-                return;
-            }
-            if (isNaN(hours) || hours <= 0) {
-                showAlert('请输入有效的预估耗时（大于0）！');
-                return;
             }
 
-            // 创建新任务
-            const newTask = {
-                id: taskId++,
-                userId: userId,
-                userName: userName,
-                name: name,
-                hours: hours,
-                status: status
-            };
-
-            // 添加到列表
-            taskList.push(newTask);
-            originalTaskList = [...taskList];
-            // 保存到本地
-            saveTasksToLocal();
-            // 重新渲染队列
-            renderTaskQueue();
-            // 更新统计信息
-            updateStats();
-            // 清空输入框
-            document.getElementById('userId').value = '';
-            document.getElementById('userName').value = '';
-            document.getElementById('taskName').value = '';
-            document.getElementById('taskHours').value = '';
-            document.getElementById('taskStatus').value = 'waiting';
-        }
-
-        // 导入JSON格式任务数据
-        function importJsonTasks() {
-            const jsonText = document.getElementById('jsonText').value.trim();
-            if (!jsonText) {
-                showAlert('请输入JSON格式的任务数据！');
-                return;
+            // 排序：进行中 → 待处理 → 已完成 → 已取消
+            function sortTasks() {
+                taskList.sort((a, b) => {
+                    const weight = { "进行中": 0, "待处理": 1, "已完成": 2, "已取消": 99 };
+                    return (weight[a.status] || 99) - (weight[b.status] || 99);
+                });
             }
 
-            try {
-                // 解析JSON数据
-                const importedTasks = JSON.parse(jsonText);
-                
-                // 验证是否为数组
-                if (!Array.isArray(importedTasks)) {
-                    showAlert('JSON数据必须是数组格式！');
-                    return;
-                }
+            // 轻提示
+            function showToast(msg) {
+                const t = $("#toast");
+                t.text(msg).addClass("show");
+                setTimeout(() => t.removeClass("show"), 2000);
+            }
 
-                let successCount = 0;
-                let errorItems = [];
+            // 保存本地
+            function save() {
+                localStorage.setItem('taskQueueData', JSON.stringify(taskList));
+            }
 
-                // 遍历验证并添加任务
-                importedTasks.forEach((task, index) => {
-                    // 验证必要字段
-                    const { userId, userName, name, hours, status } = task;
-                    if (!userId) {
-                        errorItems.push(`第${index+1}条：UID为空`);
-                        return;
-                    }
-                    if (!userName) {
-                        errorItems.push(`第${index+1}条：用户名为空`);
-                        return;
-                    }
-                    if (!name) {
-                        errorItems.push(`第${index+1}条：任务名称为空`);
-                        return;
-                    }
-                    if (isNaN(hours) || hours <= 0) {
-                        errorItems.push(`第${index+1}条：预估耗时无效`);
-                        return;
-                    }
-                    if (!['waiting', 'active', 'done'].includes(status)) {
-                        errorItems.push(`第${index+1}条：状态无效（仅支持waiting/active/done）`);
-                        return;
-                    }
+            // 渲染（修复卡顿：不强制刷新输入框焦点）
+            function renderQueue() {
+                sortTasks();
+                const $list = $("#taskQueue");
+                $list.empty();
 
-                    // 验证通过，创建任务（自动分配ID）
-                    taskList.push({
-                        id: taskId++,
-                        userId: userId,
-                        userName: userName,
-                        name: name,
-                        hours: parseFloat(hours),
-                        status: status
+                $.each(taskList, (i, item) => {
+                    let opts = '';
+                    $.each(statusList, (_, s) => {
+                        opts += `<option value="${s}" ${s === item.status ? 'selected' : ''}>${s}</option>`;
                     });
-                    successCount++;
+
+                    const html = `
+                    <div class="grid grid-cols-12 gap-2 items-center p-3 border rounded ${statusClass(item.status)}">
+                        <div class="col-span-1 text-center">${i + 1}</div>
+                        <input data-i="${i}" class="col-span-2 px-2 py-1 border rounded username" value="${item.username}">
+                        <input data-i="${i}" class="col-span-3 px-2 py-1 border rounded taskname" value="${item.taskName}">
+                        <input data-i="${i}" class="col-span-2 px-2 py-1 border text-right minute" value="${item.minute}" type="number" min="0">
+                        <select data-i="${i}" class="col-span-2 px-2 py-1 border rounded status">${opts}</select>
+                        <div class="col-span-2 text-right"><button data-i="${i}" class="del px-2 py-1 bg-red-500 text-white rounded text-sm">删除</button></div>
+                    </div>`;
+                    $list.append(html);
                 });
 
-                // 更新原始列表和本地存储
-                originalTaskList = [...taskList];
-                saveTasksToLocal();
-                renderTaskQueue();
-                updateStats();
+                calcTotalTime();
+                save();
+            }
 
-                // 提示导入结果（替换alert为showAlert）
-                let tipMsg = `成功导入${successCount}条任务！`;
-                if (errorItems.length > 0) {
-                    tipMsg += `\n错误项：\n${errorItems.join('\n')}`;
+            // 计算耗时（排除已完成）
+            function calcTotalTime() {
+                const total = taskList.filter(t => t.status !== "已完成").reduce((s, t) => s + (Number(t.minute) || 0), 0);
+                $("#totalTime").text(total + " 分钟");
+                if (total <= 0) $("#finishTime").text("-");
+                else {
+                    const end = new Date(Date.now() + total * 60000);
+                    $("#finishTime").text(end.toLocaleString());
                 }
-                showAlert(tipMsg);
-
-                // 清空JSON文本框
-                document.getElementById('jsonText').value = '';
-
-            } catch (e) {
-                showAlert(`JSON解析失败：${e.message}\n请检查JSON格式是否正确！`, '错误');
-            }
-        }
-
-        // 导出JSON格式任务数据
-        function exportJsonTasks() {
-            if (taskList.length === 0) {
-                showAlert('当前无任务可导出！');
-                return;
             }
 
-            // 过滤掉ID（仅保留核心字段），方便导入复用
-            const exportData = taskList.map(task => ({
-                userId: task.userId,
-                userName: task.userName,
-                name: task.name,
-                hours: task.hours,
-                status: task.status
-            }));
+            // 流畅输入（修复卡顿核心）
+            $(document).on("input", ".username,.taskname,.minute", function () {
+                const i = $(this).data("i");
+                taskList[i].username = $(this).closest(".grid").find(".username").val();
+                taskList[i].taskName = $(this).closest(".grid").find(".taskname").val();
+                taskList[i].minute = Number($(this).closest(".grid").find(".minute").val()) || 0;
+                calcTotalTime();
+                save();
+            });
 
-            // 格式化JSON字符串（缩进2个空格，易读）
-            const jsonStr = JSON.stringify(exportData, null, 2);
-            // 创建Blob对象
-            const blob = new Blob([jsonStr], { type: 'application/json;charset=utf-8' });
-            // 创建下载链接
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            // 文件名：代肝任务_日期.json
-            const dateStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-            a.download = `代肝任务_${dateStr}.json`;
-            // 触发下载
-            a.click();
-            // 释放URL对象
-            URL.revokeObjectURL(url);
+            // 改状态
+            $(document).on("change", ".status", function () {
+                const i = $(this).data("i");
+                taskList[i].status = $(this).val();
+                renderQueue();
+                showToast("状态已更新");
+            });
 
-            showAlert('JSON数据导出成功！文件已下载。');
-        }
+            // 删除
+            $(document).on("click", ".del", function () {
+                taskList.splice($(this).data("i"), 1);
+                renderQueue();
+                showToast("已删除任务");
+            });
 
-        // 筛选任务展示
-        function filterTasks() {
-            const filterType = document.getElementById('filterType').value;
-            const filterValue = document.getElementById('filterValue').value.trim().toLowerCase();
+            // 新增
+            $("#addTask").click(() => {
+                taskList.push({ username: "", taskName: "新任务", minute: 10, status: "待处理" });
+                renderQueue();
+                showToast("新增成功");
+            });
 
-            if (!filterValue && filterType !== 'all') {
-                showAlert('请输入筛选关键词！');
-                return;
-            }
+            // 清空
+            $("#clearAll").click(() => {
+                if (confirm("确定清空所有任务？")) {
+                    taskList = [];
+                    renderQueue();
+                    showToast("已清空所有任务");
+                }
+            });
 
-            let filteredTasks = [...originalTaskList];
-            switch (filterType) {
-                case 'uid':
-                    filteredTasks = originalTaskList.filter(task => task.userId.toLowerCase().includes(filterValue));
-                    break;
-                case 'username':
-                    filteredTasks = originalTaskList.filter(task => task.userName.toLowerCase().includes(filterValue));
-                    break;
-                case 'taskname':
-                    filteredTasks = originalTaskList.filter(task => task.name.toLowerCase().includes(filterValue));
-                    break;
-                case 'status':
-                    filteredTasks = originalTaskList.filter(task => task.status.toLowerCase().includes(filterValue));
-                    break;
-                default:
-                    filteredTasks = [...originalTaskList];
-            }
+            // 导出
+            $("#exportJson").click(() => {
+                const blob = new Blob([JSON.stringify(taskList, null, 2)], { type: "application/json" });
+                const url = URL.createObjectURL(blob);
+                $("<a>").attr({ href: url, download: "queue-data.json" })[0].click();
+                URL.revokeObjectURL(url);
+                showToast("导出成功");
+            });
 
-            // 渲染筛选后的任务
-            renderTaskQueue(filteredTasks);
-            // 更新筛选后的统计信息
-            updateFilteredStats(filteredTasks);
-        }
-
-        // 显示全部任务
-        function showAllTasks() {
-            renderTaskQueue(originalTaskList);
-            updateStats();
-            document.getElementById('filterValue').value = '';
-        }
-
-        // 打开编辑任务弹窗
-        function openEditModal(taskId) {
-            const task = taskList.find(t => t.id === taskId);
-            if (!task) return;
-
-            // 填充表单数据
-            document.getElementById('editTaskId').value = task.id;
-            document.getElementById('editUserId').value = task.userId;
-            document.getElementById('editUserName').value = task.userName;
-            document.getElementById('editTaskName').value = task.name;
-            document.getElementById('editTaskHours').value = task.hours;
-            document.getElementById('editTaskStatus').value = task.status;
-
-            // 显示弹窗
-            document.getElementById('editModal').style.display = 'flex';
-        }
-
-        // 关闭编辑任务弹窗
-        function closeEditModal() {
-            document.getElementById('editModal').style.display = 'none';
-        }
-
-        // 保存编辑后的任务
-        function saveEditTask() {
-            const taskId = parseInt(document.getElementById('editTaskId').value);
-            const userId = document.getElementById('editUserId').value.trim();
-            const userName = document.getElementById('editUserName').value.trim();
-            const name = document.getElementById('editTaskName').value.trim();
-            const hours = parseFloat(document.getElementById('editTaskHours').value);
-            const status = document.getElementById('editTaskStatus').value;
-
-            // 验证输入（替换alert为showAlert）
-            if (!userId) {
-                showAlert('请输入用户UID！');
-                return;
-            }
-            if (!userName) {
-                showAlert('请输入用户名！');
-                return;
-            }
-            if (!name) {
-                showAlert('请输入任务名称！');
-                return;
-            }
-            if (isNaN(hours) || hours <= 0) {
-                showAlert('请输入有效的预估耗时（大于0）！');
-                return;
-            }
-
-            // 找到并更新任务
-            const taskIndex = taskList.findIndex(t => t.id === taskId);
-            if (taskIndex !== -1) {
-                taskList[taskIndex] = {
-                    ...taskList[taskIndex],
-                    userId: userId,
-                    userName: userName,
-                    name: name,
-                    hours: hours,
-                    status: status
+            // 导入
+            $("#importJson").change(e => {
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    try {
+                        const data = JSON.parse(ev.target.result);
+                        if (Array.isArray(data)) {
+                            taskList = data;
+                            renderQueue();
+                            showToast("✅ 导入成功");
+                        }
+                    } catch {
+                        showToast("❌ JSON 格式错误");
+                    }
                 };
-
-                // 更新原始列表和本地存储
-                originalTaskList = [...taskList];
-                saveTasksToLocal();
-                // 重新渲染和更新统计
-                renderTaskQueue();
-                updateStats();
-                // 关闭弹窗
-                closeEditModal();
-
-                showAlert('任务修改成功！');
-            }
-        }
-
-        // 计算任务的完成时间
-        function calculateTaskDeadlines(taskData = taskList) {
-            // 复制当前开始时间作为累计时间起点
-            let cumulativeTime = new Date(currentStartTime);
-            const taskDeadlines = [];
-
-            taskData.forEach(task => {
-                // 已完成的任务不参与累计计算（但仍显示完成时间）
-                if (task.status === 'done') {
-                    taskDeadlines.push({
-                        taskId: task.id,
-                        startTime: '--:--',
-                        finishTime: '--:--'
-                    });
-                    return;
-                }
-
-                // 格式化开始时间
-                const startTimeStr = `${cumulativeTime.getHours().toString().padStart(2, '0')}:${cumulativeTime.getMinutes().toString().padStart(2, '0')}`;
-                
-                // 累加耗时
-                cumulativeTime.setHours(cumulativeTime.getHours() + task.hours);
-                
-                // 格式化完成时间
-                const finishTimeStr = `${cumulativeTime.getHours().toString().padStart(2, '0')}:${cumulativeTime.getMinutes().toString().padStart(2, '0')}`;
-
-                taskDeadlines.push({
-                    taskId: task.id,
-                    startTime: startTimeStr,
-                    finishTime: finishTimeStr
-                });
+                reader.readAsText(e.target.files[0]);
             });
 
-            return {
-                deadlines: taskDeadlines,
-                latestFinishTime: cumulativeTime
-            };
-        }
+            $(function () { renderQueue(); });
+        </script>
+    </body>
 
-        // 渲染任务队列（支持传入筛选后的任务列表）
-        function renderTaskQueue(renderData = taskList) {
-            const queueEl = document.getElementById('taskQueue');
-            // 计算每个任务的完成时间
-            const { deadlines } = calculateTaskDeadlines(renderData);
-            
-            // 清空队列
-            queueEl.innerHTML = '';
-
-            // 无任务时显示提示
-            if (renderData.length === 0) {
-                queueEl.innerHTML = '<div class="empty-tip">暂无符合条件的任务！</div>';
-                return;
-            }
-
-            // 遍历渲染每个任务
-            renderData.forEach(task => {
-                // 状态文本和样式类
-                let statusText = '';
-                let statusClass = '';
-                switch(task.status) {
-                    case 'active':
-                        statusText = '进行中';
-                        statusClass = 'active';
-                        break;
-                    case 'done':
-                        statusText = '已完成';
-                        statusClass = 'done';
-                        break;
-                    default:
-                        statusText = '等待中';
-                        statusClass = 'waiting';
-                }
-
-                // 获取当前任务的时间信息
-                const taskDeadline = deadlines.find(d => d.taskId === task.id) || { startTime: '--:--', finishTime: '--:--' };
-
-                // 创建任务卡片
-                const taskCard = document.createElement('div');
-                taskCard.className = `task-card ${statusClass}`;
-                taskCard.innerHTML = `
-                    <div class="task-info">
-                        <div class="task-user">UID：${task.userId} | 用户名：${task.userName}</div>
-                        <div class="task-name">${task.name}</div>
-                        <div class="task-time">
-                            预估耗时：${task.hours} 小时 | 状态：${statusText}<br>
-                            开始时间：${taskDeadline.startTime} | 最晚完成：<span class="task-deadline">${taskDeadline.finishTime}</span>
-                        </div>
-                    </div>
-                    <div class="task-actions">
-                        <button class="btn btn-edit" onclick="openEditModal(${task.id})">编辑</button>
-                        <button class="btn btn-secondary" onclick="changeTaskStatus(${task.id}, 'active')">进行中</button>
-                        <button class="btn btn-primary" onclick="changeTaskStatus(${task.id}, 'done')">已完成</button>
-                        <button class="btn btn-danger" onclick="deleteTask(${task.id})">删除</button>
-                    </div>
-                `;
-
-                // 添加到队列
-                queueEl.appendChild(taskCard);
-            });
-        }
-
-        // 修改任务状态
-        function changeTaskStatus(taskId, status) {
-            const taskIndex = taskList.findIndex(t => t.id === taskId);
-            if (taskIndex !== -1) {
-                taskList[taskIndex].status = status;
-                originalTaskList = [...taskList];
-                saveTasksToLocal();
-                renderTaskQueue();
-                updateStats();
-            }
-        }
-
-        // 删除任务（替换confirm为showConfirm）
-        function deleteTask(taskId) {
-            showConfirm('确定要删除这个任务吗？', function() {
-                taskList = taskList.filter(t => t.id !== taskId);
-                originalTaskList = [...taskList];
-                saveTasksToLocal();
-                renderTaskQueue();
-                updateStats();
-            }, '确认删除');
-        }
-
-        // 清空所有任务（替换confirm为showConfirm）
-        function clearAllTasks() {
-            if (taskList.length === 0) {
-                showAlert('当前没有任务可清空！');
-                return;
-            }
-            showConfirm('确定要清空所有任务吗？此操作不可恢复！', function() {
-                taskList = [];
-                originalTaskList = [];
-                saveTasksToLocal();
-                renderTaskQueue();
-                updateStats();
-            }, '确认清空');
-        }
-
-        // 更新全局统计信息
-        function updateStats() {
-            updateFilteredStats(taskList);
-        }
-
-        // 更新筛选后的统计信息
-        function updateFilteredStats(filteredData) {
-            // 计算待完成总耗时（排除已完成的）
-            const totalHours = filteredData
-                .filter(t => t.status !== 'done')
-                .reduce((sum, task) => sum + task.hours, 0)
-                .toFixed(1);
-            
-            // 待完成任务数
-            const totalTasks = filteredData.filter(t => t.status !== 'done').length;
-
-            // 计算最晚完成时间
-            const { latestFinishTime } = calculateTaskDeadlines(filteredData);
-            const latestTimeStr = filteredData.length > 0 
-                ? `${latestFinishTime.getHours().toString().padStart(2, '0')}:${latestFinishTime.getMinutes().toString().padStart(2, '0')}`
-                : '--:--';
-
-            // 更新显示
-            document.getElementById('totalHours').textContent = totalHours;
-            document.getElementById('totalTasks').textContent = totalTasks;
-            document.getElementById('latestFinishTime').textContent = latestTimeStr;
-        }
-
-        // 保存任务到本地存储（刷新不丢失）
-        function saveTasksToLocal() {
-            localStorage.setItem('daiGanTasks', JSON.stringify(taskList));
-        }
-    </script>
-</body>
 </html>
