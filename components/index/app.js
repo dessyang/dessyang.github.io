@@ -1,8 +1,8 @@
-import { createApp, ref } from './script/vue.esm-browser-3.5.31.js'
-import loadTemplate from './utils/load_template.js'
+import { createApp, ref } from '../../script/vue.esm-browser.prod-3.5.31.js'
+import loadTemplate from '../../utils/load_template.js'
 
 // 初始化
-loadTemplate("./index-temp.html").then(template => {
+loadTemplate("./components/index/index-temp.html").then(template => {
     createApp({
         setup() {
             const navData = ref([
@@ -10,15 +10,15 @@ loadTemplate("./index-temp.html").then(template => {
                     title: "排队工具",
                     desc: "用于代肝任务的排队工具",
                     icon: "",
-                    url: "page/queue.html",
-                    color: "bg-gradient-to-br from-blue-300 to-blue-900"
+                    url: "components/queue/queue.html",
+                    color: "bg-gradient-to-br from-blue-300 to-blue-900 text-white"
                 },
                 {
                     title: "服务费计算器",
                     desc: "服务费倒扣计算器",
                     icon: "",
-                    url: "page/rate.html",
-                    color: "bg-gradient-to-br from-red-300 to-red-900"
+                    url: "components/rate/rate.html",
+                    color: "bg-gradient-to-br from-red-300 to-red-900 text-white"
                 }
             ])
 

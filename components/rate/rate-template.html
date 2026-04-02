@@ -1,0 +1,42 @@
+<div class="max-w-5xl mx-auto">
+    <h1 class="text-2xl md:text-3xl font-bold text-center mb-6">服务费倒扣计算器</h1>
+
+    <div class="bg-white rounded-xl shadow p-5 mb-5">
+        <div class="text-lg font-medium mb-3">客户最终支付金额（元）</div>
+        <input v-model="finalAmount" type="number" placeholder="请输入客户最终支付金额" class="w-full px-4 py-2 border rounded">
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5 mb-5">
+        <div class="flex justify-between items-center mb-3">
+            <div class="text-lg font-medium">服务费项</div>
+            <button @click="addItem" class="px-4 py-2 bg-blue-600 text-white rounded">添加服务费</button>
+        </div>
+
+        <div class="space-y-3">
+            <div v-for="(item, index) in feeItems" :key="index" class="flex items-center gap-2 flex-wrap p-3 border rounded bg-gray-50">
+                <input v-model="item.name" class="name w-48 px-2 py-1 border rounded" placeholder="费用名称">
+                <select v-model="item.type" class="type px-2 py-1 border rounded">
+                    <option value="rate">费率(%)</option>
+                    <option value="fixed">固定金额</option>
+                </select>
+                <input v-model.number="item.value" class="value w-20 px-2 py-1 border rounded text-right" type="number" step="0.01" placeholder="费率/金额">
+                <input v-if="item.type === 'rate'" v-model.number="item.min" class="fee-min w-20 px-2 py-1 border rounded text-right" type="number" step="0.01" placeholder="最低">
+                <input v-if="item.type === 'rate'" v-model.number="item.max" class="fee-max w-20 px-2 py-1 border rounded text-right" type="number" step="0.01" placeholder="最高">
+                <span class="flex-1 text-gray-500 text-sm">{{ getFeeText(index) }}</span>
+                <button @click="delItem(index)" class="del px-2 py-1 bg-red-500 text-white rounded text-sm">
+                    删除
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="bg-white rounded-xl shadow p-5">
+        <div class="text-lg font-medium mb-3">计算结果</div>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 text-sm">
+            <div class="p-3 bg-gray-50 rounded">客户支付：<b class="font-bold">{{ resFinal }}</b></div>
+            <div class="p-3 bg-orange-50 rounded">总服务费：<b class="text-orange-600 font-bold">{{ resFee }}</b></div>
+            <div class="p-3 bg-purple-50 rounded">实际综合费率：<b class="text-purple-700 font-bold">{{ resTotalRate }}</b></div>
+            <div class="p-3 bg-green-50 rounded">实际到手金额：<b class="text-green-700 text-xl font-bold">{{ resReal }}</b></div>
+        </div>
+    </div>
+</div>

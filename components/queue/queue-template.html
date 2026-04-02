@@ -1,0 +1,46 @@
+<div class="max-w-5xl mx-auto py-4">
+    <h1 class="text-3xl md:text-4xl font-bold text-center mb-8 text-gray-800">排队任务工具</h1>
+
+    <!-- 操作栏 -->
+    <div class="bg-white rounded-2xl shadow-md p-6 mb-6 flex flex-wrap gap-3 items-center">
+        <button @click="exportJson" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition">导出 JSON</button>
+        <label class="px-5 py-2.5 bg-gray-700 hover:bg-gray-800 text-white rounded-lg cursor-pointer transition">
+            导入 JSON
+            <input @change="importJson" type="file" accept=".json" class="hidden">
+        </label>
+        <button @click="addTask" class="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition">新增任务</button>
+        <button @click="clearAll" class="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-lg transition">清空所有</button>
+
+        <div class="ml-auto text-sm space-x-6 font-medium text-gray-700 mt-2 md:mt-0">
+            <span>剩余总耗时：<b class="text-red-600 text-lg">{{ totalTime }} 分钟</b></span>
+            <span>预计完成：<b class="text-blue-600 text-lg">{{ finishTime }}</b></span>
+        </div>
+    </div>
+
+    <!-- 任务列表 -->
+    <div class="bg-white rounded-2xl shadow-md p-6">
+        <div class="grid grid-cols-12 gap-2 px-3 pb-3 border-b font-semibold text-sm text-gray-600">
+            <div class="col-span-1">序号</div>
+            <div class="col-span-2">用户名</div>
+            <div class="col-span-3">任务名称</div>
+            <div class="col-span-2">耗时(分钟)</div>
+            <div class="col-span-2">任务状态</div>
+            <div class="col-span-2 text-right">操作</div>
+        </div>
+
+        <div class="space-y-3 mt-4">
+            <div v-for="(item, index) in taskList" :key="index" class="grid grid-cols-12 gap-2 items-center p-4 border rounded-xl transition hover:shadow-sm" :class="statusClass(item.status)">
+                <div class="text-center font-medium">{{ index + 1 }}</div>
+                <input v-model="item.username" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring focus:ring-blue-100 outline-none transition">
+                <input v-model="item.taskName" class="col-span-3 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring focus:ring-blue-100 outline-none transition">
+                <input v-model.number="item.minute" type="number" min="0" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg text-right focus:border-blue-400 focus:ring focus:ring-blue-100 outline-none transition">
+                <select v-model="item.status" class="col-span-2 px-3 py-2 border border-gray-200 rounded-lg focus:border-blue-400 focus:ring focus:ring-blue-100 outline-none transition">
+                    <option v-for="s in statusList" :value="s">{{ s }}</option>
+                </select>
+                <div class="text-right">
+                    <button @click="delTask(index)" class="px-4 py-1.5 bg-red-500 hover:bg-red-600 text-white rounded-lg transition text-sm">删除</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
