@@ -1,0 +1,19 @@
+<div class="max-w-7xl mx-auto">
+    <header class="text-center mb-10">
+        <h1 class="text-[clamp(1.8rem,4vw,3rem)] font-bold text-gray-800 mb-2">我的导航中心</h1>
+        <p class="text-gray-500">一些AI做的小工具</p>
+    </header>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <a v-for="(item, index) in navData" :key="index" :href="item.url" class="block group">
+            <div :class="item.color" class="rounded-2xl shadow-lg p-6 h-full
+        transition-all duration-300 hover:scale-105 hover:shadow-xl">
+                <div class="flex items-center gap-4 mb-4">
+                    <img v-if="item.icon" :src="item.icon" :alt="item.title" class="w-12 h-12 object-contain bg-white rounded-lg p-2">
+                    <h2 class="text-xl font-bold text-white">{{ item.title }}</h2>
+                </div>
+                <p class="text-white/90 text-sm">{{ item.desc }}</p>
+            </div>
+        </a>
+    </div>
+</div>

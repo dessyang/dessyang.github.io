@@ -5,75 +5,14 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>我的导航中心</title>
+
         <script src="script/tailwindcss-3.4.17.min.js"></script>
-        <script src="script/jquery-4.0.0.min.js"></script>
         <link rel="stylesheet" href="script/daisyui-full.min.css">
     </head>
 
-    <body>
-
-        <body class="bg-gray-100 min-h-screen p-4 md:p-8">
-            <div class="max-w-7xl mx-auto">
-                <!-- 页面标题 -->
-                <header class="text-center mb-10">
-                    <h1 class="text-[clamp(1.8rem,4vw,3rem)] font-bold text-gray-800 mb-2">我的导航中心</h1>
-                    <p class="text-gray-500">一些AI做的小工具</p>
-                </header>
-
-                <!-- 卡片容器 -->
-                <div id="nav-card-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                </div>
-            </div>
-
-            <script>
-                // ====================== 导航数据（手动在这里添加/修改）======================
-                const navData = [
-                    {
-                        title: "排队工具",
-                        desc: "用于代肝任务的排队工具",
-                        icon: "",
-                        url: "page/queue.html",
-                        color: "bg-gradient-to-br from-blue-300 to-blue-900"
-                    }, {
-                        title: "服务费计算器",
-                        desc: "服务费倒扣计算器",
-                        icon: "",
-                        url: "page/rate.html",
-                        color: "bg-gradient-to-br from-red-300 to-red-900"
-                    }
-                ];
-
-                // ====================== jQuery 渲染卡片 ======================
-                $(function () {
-                    const container = $("#nav-card-container");
-
-                    $.each(navData, function (index, item) {
-                        // 图片 HTML（只有 icon 不为空才生成）
-                        let iconHtml = '';
-                        if (item.icon && item.icon.trim() !== '') {
-                            iconHtml = `
-                            <img src="${item.icon}" alt="${item.title}" 
-                                class="w-12 h-12 object-contain bg-white rounded-lg p-2">
-                            `;
-                        }
-
-                        const card = `
-                        <a href="${item.url}" class="block group">
-                            <div class="${item.color} rounded-2xl shadow-lg p-6 h-full 
-                                transition-all duration-300 hover:scale-105 hover:shadow-xl">
-
-                                <div class="flex items-center gap-4 mb-4">
-                                    ${iconHtml}
-                                    <h2 class="text-xl font-bold text-white">${item.title}</h2>
-                                </div>
-                            <p class="text-white/90 text-sm">${item.desc}</p>
-                            </div>
-                        </a>
-                        `;
-                        container.append(card);
-                    });
-                });
-            </script>
-        </body>
+    <body class="bg-gray-100 min-h-screen p-4 md:p-8">
+        <div id="app"></div>
+        <script type="module" src="app.js"></script>
+    </body>
 
 </html>
